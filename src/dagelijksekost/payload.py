@@ -25,7 +25,8 @@ def directions(html: str) -> str | None:
     stream = "".join(chunks)
 
     decoder = json.JSONDecoder()
-    for match in re.finditer(r'"recipeParts":', stream):
+    # raw_decode() wants the value to start exactly at the index, so swallow any whitespace.
+    for match in re.finditer(r'"recipeParts":\s*', stream):
         try:
             parts, _ = decoder.raw_decode(stream, match.end())
         except (json.JSONDecodeError, ValueError):

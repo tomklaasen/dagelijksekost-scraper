@@ -4,6 +4,7 @@
 Run with: python -m unittest discover tests
 """
 
+import json
 import sys
 import unittest
 from pathlib import Path
@@ -35,6 +36,15 @@ class DirectionsTest(unittest.TestCase):
 
     def test_returns_none_when_the_page_has_no_rsc_payload(self):
         self.assertIsNone(directions(FIXTURE_HTML.replace("self.__next_f.push", "self.__removed.push")))
+
+    def test_reads_a_payload_that_has_whitespace_after_the_key(self):
+        """The site ships compact JSON, but json.raw_decode chokes on a space before the value."""
+        payload = json.dumps({"recipeParts": [{"title": None, "instructions": [
+            {"part": 1, "step": 1, "description": "Een stap.", "tip": None},
+        ]}]})
+        page = f"<html><script>self.__next_f.push([1,{json.dumps(payload)}])</script></html>"
+
+        self.assertEqual("Een stap.", directions(page))
 
     def test_returns_none_for_a_page_that_is_not_a_recipe(self):
         self.assertIsNone(directions("<html><body>geen payload</body></html>"))
